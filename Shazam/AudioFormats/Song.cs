@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using System.Runtime.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Shazam.AudioFormats
 {
@@ -17,8 +21,20 @@ namespace Shazam.AudioFormats
 			Name = name;
 		}
 
-		public uint ID { get; }
-		public string Name { get; }
+		[BsonId]
+		[DataMember]
+		public MongoDB.Bson.ObjectId _id { get; set; }
+		                                                            
+
+		[DataMember]
+		[BsonElement("ID")]
+		public uint ID { get; set; }
+
+
+
+		[DataMember]
+		[BsonElement("Name")]
+		public string Name { get; set; }
 
 	}
 }

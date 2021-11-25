@@ -41,6 +41,13 @@ namespace Shazam
 			/// </summary>
 			public const string MetadataPath = @"Resources/Metadata.json";
 
+			/// <summary>
+			/// Default path to mongo server
+			/// </summary>
+			public const string MongoPath = "mongodb://localhost:27017";
+
+
+
 		}
 	}
 

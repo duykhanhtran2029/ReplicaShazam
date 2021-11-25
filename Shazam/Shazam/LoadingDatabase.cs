@@ -7,6 +7,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Shazam.AudioFormats;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using Shazam.Database;
 
 namespace Shazam
 {
@@ -16,48 +19,47 @@ namespace Shazam
 		/// Loads all fingerprints stored at <c>folderPath</c>
 		/// </summary>
 		/// <param name="folderPath">Folder with fingerprints</param>
-		private void LoadFingerprints(string folderPath)
+		private void LoadFingerprints()
 		{
 			databases = new Dictionary<uint, List<ulong>>[6];
 			for(int i = 0; i < 6; i ++)
 				databases[i] = new Dictionary<uint, List<ulong>>();
+
+			//Get List Fingerprint
+			IMongoCollection<Fingerprint> fingerPrintCollection = DatabaseConnection.GetFingerprintCollection();
+			var list = fingerPrintCollection.Find(new BsonDocument()).ToList();
 			
-			foreach (string file in Directory.EnumerateFiles(folderPath, "*.json"))
-			{
-				Regex rx = new Regex(@"\\(?<songID>\d+).json"); //regex for matching songID
-
-				if (uint.TryParse(rx.Match(file).Groups["songID"].Value, out uint songID))
+			foreach (Fingerprint fp in list)
+            {
+				uint songID =  fp.songID;
+				Dictionary<uint, List<ulong>> tmp = new Dictionary<uint, List<ulong>>();
+				if (songID <= 100)
 				{
-					Dictionary<uint, List<ulong>> tmp = new Dictionary<uint, List<ulong>>();
-					if (songID <= 100)
-                    {
-						LoadSongFingerprint(file, songID, databases[0]);
-					}
-					if (songID > 100 && songID <= 200)
-                    {
-						LoadSongFingerprint(file, songID, databases[1]);
-					}
-					if (songID > 200 && songID <= 300)
-					{
-						LoadSongFingerprint(file, songID, databases[2]);
-					}
-					if (songID > 300 && songID <= 400)
-					{
-						LoadSongFingerprint(file, songID, databases[3]);
-					}
-					if (songID > 400 && songID <= 500)
-					{
-						LoadSongFingerprint(file, songID, databases[4]);
-					}
-					if (songID > 500 && songID <= 600)
-					{
-						LoadSongFingerprint(file, songID, databases[5]);
-					}
-					Console.WriteLine($"   Song ID: {songID} was loaded.");
-					maxSongID = Math.Max(maxSongID, songID);
+					LoadSongFingerprint(fp, databases[0]);
 				}
+				if (songID > 100 && songID <= 200)
+				{
+					LoadSongFingerprint(fp, databases[1]);
+				}
+				if (songID > 200 && songID <= 300)
+				{
+					LoadSongFingerprint(fp ,databases[2]);
+				}
+				if (songID > 300 && songID <= 400)
+				{
+					LoadSongFingerprint(fp, databases[3]);
+				}
+				if (songID > 400 && songID <= 500)
+				{
+					LoadSongFingerprint(fp, databases[4]);
+				}
+				if (songID > 500 && songID <= 600)
+				{
+					LoadSongFingerprint(fp, databases[5]);
+				}
+				Console.WriteLine($"   Song ID: {songID} was loaded.");
+				maxSongID = Math.Max(maxSongID, songID);
 			}
-
 		}
 		/// <summary>
 		/// Loads fingerprint of song at <c>fingerprintPath</c> as song with <c>songID</c> ID.
@@ -69,6 +71,21 @@ namespace Shazam
 			List<TimeFrequencyPoint> timeFrequencyPoints = LoadTFP(fingerprintPath);
 			AddTFPToDatabase(timeFrequencyPoints, songID, ref database);
 		}
+
+
+
+
+		/// <summary>
+		/// Save fingerprint at <c>database</c>
+		/// </summary>
+		/// <param name="fingerprint"></param>
+		private void LoadSongFingerprint(Fingerprint fingerprint, Dictionary<uint, List<ulong>> database)
+		{
+			List<TimeFrequencyPoint> timeFrequencyPoints = fingerprint.FTP;
+			AddTFPToDatabase(timeFrequencyPoints, fingerprint.songID , ref database);
+		}
+
+
 		/// <summary>
 		/// Loads Time-Frequency Points of a fingerprint at <c>fingerprintPath</c>
 		/// </summary>
@@ -92,6 +109,28 @@ namespace Shazam
 				metadata = JsonConvert.DeserializeObject<List<Song>>(metadatas);
 			else
 				metadata = new List<Song>();
+		}
+
+
+		private void LoadMetaData()
+		{
+			IMongoCollection<Song> songCollection = DatabaseConnection.GetSongCollection();
+            try
+            {
+				var list = songCollection.Find(new BsonDocument()).ToList();
+
+				if (list != null)
+				{
+					metadata = list;
+				}
+				else
+					metadata = new List<Song>();
+			}
+			catch (Exception e)
+            {
+				Console.WriteLine(e);
+			}
+			
 		}
 		/// <summary>
 		/// Populates local database with TFPs

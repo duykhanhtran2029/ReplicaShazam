@@ -1,26 +1,25 @@
-﻿using System;
+﻿using Shazam.AudioFormats;
+using Shazam.AudioProcessing;
+using Shazam.AudioProcessing.Server;
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Shazam.AudioFormats;
-using Shazam.AudioProcessing;
-using Shazam.AudioProcessing.Server;
 
 [assembly: InternalsVisibleTo("ShazamUnitTests")]
 namespace Shazam
 {
-	public partial class Shazam
+    public partial class Shazam
 	{
 		public Shazam()
 		{
-			//Action loadFingerPrints = () => LoadFingerprints(Constants.FingerprintPath);
-			//Action loadMetadata = () => LoadMetadata(Constants.MetadataPath);
-			//Parallel.Invoke(loadFingerPrints, loadMetadata);
+			Action loadFingerPrints = () => LoadFingerprints();
+			Action loadMetadata = () => LoadMetaData();
+			Parallel.Invoke(loadFingerPrints, loadMetadata);
+
 		}
 
 
@@ -67,8 +66,10 @@ namespace Shazam
 			//Save Metadata async
 			Thread MetadataSaver = new Thread(() =>
 			{
-				metadata.Add(new Song(maxSongID, name));
-				SaveMetadata();
+				Song newSong = new Song(maxSongID, name);
+				metadata.Add(newSong);
+				DatabaseConnection.SaveSong(newSong);
+				//SaveMetadata();
 			});
 			MetadataSaver.Start();
 

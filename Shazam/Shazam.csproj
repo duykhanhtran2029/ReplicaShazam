@@ -18,11 +18,12 @@
 
   <ItemGroup>
     <None Remove="BlankPage1.xaml" />
-    <None Remove="Resources\Fingerprints\Fingerprints.xaml" />
     <None Remove="Helpers\Extensions\SwapExtension.xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="dotenv.net" Version="3.1.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.13.3" />
     <PackageReference Include="NAudio" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SFML.Net" Version="2.5.0" />
@@ -1298,6 +1299,12 @@
     <Page Include="Resources\Fingerprints\Fingerprints.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Fingerprints\" />
+    <Folder Include="Resources\Songs\Mp3\" />
+    <Folder Include="Resources\Songs\Wav\" />
   </ItemGroup>
 
 </Project>

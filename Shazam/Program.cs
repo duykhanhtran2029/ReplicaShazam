@@ -13,15 +13,23 @@ namespace Shazam
 {
     class Program
 	{
+
         public static void Main()
 		{
+            
+            DatabaseConnection.CreateConnection();
+
             Shazam s = new Shazam();
-            AudioMixer.NoiseMixer("ZWZF8Z96");
+            
+            //WavConvert("ZW6F9A6U");
+            //AudioMixer.NoiseMixer("ZWZF8Z96");
             //CutRawSong("ZWZF8Z96");
             //LoadAllSongs(s);
             //MixAllSongs(s);
             //TestAllSongs(s);
-            //Menu(s);
+            Menu(s);
+
+
         }
 
         private static void Menu(Shazam s)
@@ -136,11 +144,12 @@ namespace Shazam
 	        {
 		        o.WriteLine("{2,2} {0,-10} {1,-20}", pair.Item1, pair.Item2, "");
 	        }
-        }
+        } 
 
         private static void LoadAllSongs(Shazam s, string folder = "Mp3")
         {
             DirectoryInfo d = new DirectoryInfo($"Resources/Songs/{folder}");
+            // Note: If it was mp3 file ? nOt Converted?????
             string searchPattern = folder == "Mp3" ? "*.mp3" : "*.wav";
             FileInfo[] Files = d.GetFiles(searchPattern);
             foreach (FileInfo file in Files)
