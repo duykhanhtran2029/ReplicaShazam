@@ -1,4 +1,7 @@
-﻿using System;
+﻿
+
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,10 +16,15 @@ using Shazam.Database;
 using System.Threading;
 using System.Linq;
 
+
+
 namespace Shazam
 {
 	public partial class Shazam
 	{
+
+
+		public const int PROCESSORS = 6;
 		/// <summary>
 		/// Loads all fingerprints stored at <c>folderPath</c>
 		/// </summary>
@@ -24,39 +32,44 @@ namespace Shazam
 		private void LoadFingerprints()
 		{
 		
-			databases = new Dictionary<uint, List<ulong>>[6];
-			for (int i = 0; i < 6; i++)
+			databases = new Dictionary<uint, List<ulong>>[PROCESSORS];
+			for (int i = 0; i < PROCESSORS; i++)
 				databases[i] = new Dictionary<uint, List<ulong>>();
-
-
 			List<Thread> threads = new List<Thread>();
+
 
 			//Get List Fingerprint
 			IMongoCollection<Fingerprint> fingerPrintCollection = DatabaseConnection.GetFingerprintCollection();
+			List <Fingerprint> fingerprints= fingerPrintCollection.Find(new BsonDocument()).ToList();
 			
-			var splitFingerprints = fingerPrintCollection.Find(new BsonDocument()).ToList()
-											.Select((s, i) => new { s, i })
-											.GroupBy(x => x.i % 6)
-											.Select(g => g.Select(x => x.s).ToList())
-											.ToList();
-			// Start threads
-			for (int i = 0; i < 6; i++)
+			maxSongID = (uint)fingerprints.Count;
+			if(maxSongID != 0)
 			{
-				int tmp = i; // Copy value for closure
-				Thread t = new Thread(() => {
-					foreach (Fingerprint fp in splitFingerprints[tmp])
-						LoadSongFingerprint(fp, databases[tmp]);
-					Console.WriteLine($"Database {tmp} was loaded");
-				});
-				t.Start();
-				threads.Add(t);
-			}
+				var splitFingerprints = fingerprints.Select((s, i) => new { s, i })
+										.GroupBy(x => x.i % PROCESSORS)
+										.Select(g => g.Select(x => x.s).ToList())
+										.ToList();
+				// Start threads
+				for (int i = 0; i < PROCESSORS; i++)
+				{
+					int tmp = i; // Copy value for closure
+					Thread t = new Thread(() => {
+						foreach (Fingerprint fp in splitFingerprints[tmp])
+							LoadSongFingerprint(fp, databases[tmp]);
+						Console.WriteLine($"Database {tmp} was loaded");
+					});
+					t.Start();
+					threads.Add(t);
+				}
 
-			// Join threads (wait threads)
-			foreach (Thread thread in threads)
-			{
-				thread.Join();
+				// Join threads (wait threads)
+				foreach (Thread thread in threads)
+				{
+					thread.Join();
+				}
+
 			}
+			
 
 
 			
@@ -71,9 +84,6 @@ namespace Shazam
 			List<TimeFrequencyPoint> timeFrequencyPoints = LoadTFP(fingerprintPath);
 			AddTFPToDatabase(timeFrequencyPoints, songID, ref database);
 		}
-
-
-
 
 		/// <summary>
 		/// Save fingerprint at <c>database</c>

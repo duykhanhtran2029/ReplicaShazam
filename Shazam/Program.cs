@@ -24,7 +24,7 @@ namespace Shazam
             //WavConvert("ZW6F9A6U");
             //AudioMixer.NoiseMixer("ZWZF8Z96");
             //CutRawSong("ZWZF8Z96");
-            //LoadAllSongs(s);
+            LoadAllSongs(s);
             //MixAllSongs(s);
             //TestAllSongs(s);
             Menu(s);
