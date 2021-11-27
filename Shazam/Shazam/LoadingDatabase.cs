@@ -10,6 +10,8 @@ using Shazam.AudioFormats;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using Shazam.Database;
+using System.Threading;
+using System.Linq;
 
 namespace Shazam
 {
@@ -24,41 +26,34 @@ namespace Shazam
 			databases = new Dictionary<uint, List<ulong>>[6];
 			for(int i = 0; i < 6; i ++)
 				databases[i] = new Dictionary<uint, List<ulong>>();
+			List<Thread> threads = new List<Thread>();
 
 			//Get List Fingerprint
 			IMongoCollection<Fingerprint> fingerPrintCollection = DatabaseConnection.GetFingerprintCollection();
-			var list = fingerPrintCollection.Find(new BsonDocument()).ToList();
+			List <Fingerprint> fingerprints= fingerPrintCollection.Find(new BsonDocument()).ToList();
 			
-			foreach (Fingerprint fp in list)
-            {
-				uint songID =  fp.songID;
-				Dictionary<uint, List<ulong>> tmp = new Dictionary<uint, List<ulong>>();
-				if (songID <= 100)
-				{
-					LoadSongFingerprint(fp, databases[0]);
-				}
-				if (songID > 100 && songID <= 200)
-				{
-					LoadSongFingerprint(fp, databases[1]);
-				}
-				if (songID > 200 && songID <= 300)
-				{
-					LoadSongFingerprint(fp ,databases[2]);
-				}
-				if (songID > 300 && songID <= 400)
-				{
-					LoadSongFingerprint(fp, databases[3]);
-				}
-				if (songID > 400 && songID <= 500)
-				{
-					LoadSongFingerprint(fp, databases[4]);
-				}
-				if (songID > 500 && songID <= 600)
-				{
-					LoadSongFingerprint(fp, databases[5]);
-				}
-				Console.WriteLine($"   Song ID: {songID} was loaded.");
-				maxSongID = Math.Max(maxSongID, songID);
+			maxSongID = (uint)fingerprints.Count;
+			var splitFingerprints = fingerprints.Select((s, i) => new { s, i })
+										.GroupBy(x => x.i % 6)
+										.Select(g => g.Select(x => x.s).ToList())
+										.ToList();
+			// Start threads
+			for (int i = 0; i < 6; i++)
+			{
+				int tmp = i; // Copy value for closure
+				Thread t = new Thread(() => {
+					foreach (Fingerprint fp in splitFingerprints[i])
+						LoadSongFingerprint(fp, databases[i]);
+					Console.WriteLine($"Database {i} was loaded");
+				});
+				t.Start();
+				threads.Add(t);
+			}
+
+			// Join threads (wait threads)
+			foreach (Thread thread in threads)
+			{
+				thread.Join();
 			}
 		}
 		/// <summary>
@@ -71,9 +66,6 @@ namespace Shazam
 			List<TimeFrequencyPoint> timeFrequencyPoints = LoadTFP(fingerprintPath);
 			AddTFPToDatabase(timeFrequencyPoints, songID, ref database);
 		}
-
-
-
 
 		/// <summary>
 		/// Save fingerprint at <c>database</c>
