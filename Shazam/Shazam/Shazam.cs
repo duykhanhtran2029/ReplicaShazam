@@ -19,7 +19,7 @@ namespace Shazam
 			Action loadFingerPrints = () => LoadFingerprints();
 			Action loadMetadata = () => LoadMetaData();
 			Parallel.Invoke(loadFingerPrints, loadMetadata);
-
+		
 		}
 
 

@@ -10,6 +10,8 @@ using Shazam.AudioFormats;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using Shazam.Database;
+using System.Threading;
+using System.Linq;
 
 namespace Shazam
 {
@@ -21,45 +23,43 @@ namespace Shazam
 		/// <param name="folderPath">Folder with fingerprints</param>
 		private void LoadFingerprints()
 		{
+		
 			databases = new Dictionary<uint, List<ulong>>[6];
-			for(int i = 0; i < 6; i ++)
+			for (int i = 0; i < 6; i++)
 				databases[i] = new Dictionary<uint, List<ulong>>();
+
+
+			List<Thread> threads = new List<Thread>();
 
 			//Get List Fingerprint
 			IMongoCollection<Fingerprint> fingerPrintCollection = DatabaseConnection.GetFingerprintCollection();
-			var list = fingerPrintCollection.Find(new BsonDocument()).ToList();
 			
-			foreach (Fingerprint fp in list)
-            {
-				uint songID =  fp.songID;
-				Dictionary<uint, List<ulong>> tmp = new Dictionary<uint, List<ulong>>();
-				if (songID <= 100)
-				{
-					LoadSongFingerprint(fp, databases[0]);
-				}
-				if (songID > 100 && songID <= 200)
-				{
-					LoadSongFingerprint(fp, databases[1]);
-				}
-				if (songID > 200 && songID <= 300)
-				{
-					LoadSongFingerprint(fp ,databases[2]);
-				}
-				if (songID > 300 && songID <= 400)
-				{
-					LoadSongFingerprint(fp, databases[3]);
-				}
-				if (songID > 400 && songID <= 500)
-				{
-					LoadSongFingerprint(fp, databases[4]);
-				}
-				if (songID > 500 && songID <= 600)
-				{
-					LoadSongFingerprint(fp, databases[5]);
-				}
-				Console.WriteLine($"   Song ID: {songID} was loaded.");
-				maxSongID = Math.Max(maxSongID, songID);
+			var splitFingerprints = fingerPrintCollection.Find(new BsonDocument()).ToList()
+											.Select((s, i) => new { s, i })
+											.GroupBy(x => x.i % 6)
+											.Select(g => g.Select(x => x.s).ToList())
+											.ToList();
+			// Start threads
+			for (int i = 0; i < 6; i++)
+			{
+				int tmp = i; // Copy value for closure
+				Thread t = new Thread(() => {
+					foreach (Fingerprint fp in splitFingerprints[tmp])
+						LoadSongFingerprint(fp, databases[tmp]);
+					Console.WriteLine($"Database {tmp} was loaded");
+				});
+				t.Start();
+				threads.Add(t);
 			}
+
+			// Join threads (wait threads)
+			foreach (Thread thread in threads)
+			{
+				thread.Join();
+			}
+
+
+			
 		}
 		/// <summary>
 		/// Loads fingerprint of song at <c>fingerprintPath</c> as song with <c>songID</c> ID.
@@ -129,6 +129,7 @@ namespace Shazam
 			catch (Exception e)
             {
 				Console.WriteLine(e);
+				metadata = new List<Song>();
 			}
 			
 		}

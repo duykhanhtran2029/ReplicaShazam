@@ -52,7 +52,7 @@ namespace Shazam
         }
         public static void CreateConnection()
         {
-            
+
             if (client == null)
             {
 
@@ -64,13 +64,13 @@ namespace Shazam
                 DBPath = env["MONGO_PATH"];
                 songColName = env["SONG_COLLECTION"];
 
-   
+
                 TextWriter output = Console.Out;
                 try
                 {
 
-                    /* var settings = MongoClientSettings.FromConnectionString("mongodb+srv://huutri148:tri12345678@cluster0.vs3cl.mongodb.net/shazam?retryWrites=true&w=majority");
-                     client = new MongoClient(settings);*/
+                  /*  var settings = MongoClientSettings.FromConnectionString("mongodb+srv://huutri148:tri12345678@cluster0.vs3cl.mongodb.net/shazam?retryWrites=true&w=majority");
+                    client = new MongoClient(settings);*/
                     client = new MongoClient(DBPath);
                     var db = client.GetDatabase(DBName);
                     fingerPrintCollection = db.GetCollection<Fingerprint>(ftpColName);
@@ -84,6 +84,21 @@ namespace Shazam
                     output.WriteLine("Meet Error when connecting to MongoDB");
                 }
             }
+
+            /* var settings = MongoClientSettings.FromConnectionString("mongodb+srv://huutri148:tri12345678@cluster0.vs3cl.mongodb.net/shazam?retryWrites=true&w=majority");
+             client = new MongoClient(settings);
+             var db = client.GetDatabase("shazam");
+             var col = db.ListCollectionNames().ToList();
+
+             foreach(var c in col)
+             {
+                 Console.WriteLine(c);
+             }*/
+
+
+
+
+
 
         }
         public static void SaveFingerPrint(Fingerprint ftp)
