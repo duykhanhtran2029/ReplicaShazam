@@ -90,7 +90,7 @@ namespace Shazam
 
 			#region STEREO
 
-			var audio = AudioReader.GetSound("Resources/Songs/" + (isFile ? "Mix/" : "Wav/") + path);
+			var audio = AudioReader.GetSound("../../../Resources/Songs/" + (isFile ? "Mix/" : "Wav/") + path);
 
 			#endregion
 

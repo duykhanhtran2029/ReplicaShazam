@@ -146,10 +146,10 @@ namespace Shazam
 	        }
         } 
 
-        private static void LoadAllSongs(Shazam s, string folder = "Mp3")
+        private static void LoadAllSongs(Shazam s, string folder = "Wav")
         {
-            DirectoryInfo d = new DirectoryInfo($"Resources/Songs/{folder}");
-            // Note: If it was mp3 file ? nOt Converted?????
+            DirectoryInfo d = new DirectoryInfo($"../../../Resources/Songs/{folder}");
+
             string searchPattern = folder == "Mp3" ? "*.mp3" : "*.wav";
             FileInfo[] Files = d.GetFiles(searchPattern);
             foreach (FileInfo file in Files)

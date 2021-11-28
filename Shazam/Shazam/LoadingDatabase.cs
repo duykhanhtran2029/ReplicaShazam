@@ -25,6 +25,8 @@ namespace Shazam
 
 
 		public const int PROCESSORS = 6;
+
+
 		/// <summary>
 		/// Loads all fingerprints stored at <c>folderPath</c>
 		/// </summary>
