@@ -134,6 +134,8 @@ namespace Shazam
 				if (list != null)
 				{
 					metadata = list;
+					Song first = metadata[0];
+					first.ReadMetaData();
 				}
 				else
 					metadata = new List<Song>();

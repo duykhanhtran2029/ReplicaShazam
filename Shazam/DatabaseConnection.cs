@@ -111,6 +111,16 @@ namespace Shazam
         {
             songCollection.InsertOne(song);
         }
+        
+
+        public static void UpdateMetaData(List<Song> songs)
+        {
+            foreach(Song songIndex in songs)
+            {
+                var filter = Builders<Song>.Filter.Eq(song => song._id, songIndex._id);
+                var result = songCollection.ReplaceOne(filter, songIndex);
+            }
+        }
 
 
         public void SetupDB ()

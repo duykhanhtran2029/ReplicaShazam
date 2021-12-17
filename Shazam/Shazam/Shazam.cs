@@ -69,7 +69,7 @@ namespace Shazam
 				Song newSong = new Song(maxSongID, name);
 				metadata.Add(newSong);
 				DatabaseConnection.SaveSong(newSong);
-				//SaveMetadata();
+		
 			});
 			MetadataSaver.Start();
 

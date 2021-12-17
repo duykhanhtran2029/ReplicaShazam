@@ -20,14 +20,15 @@ namespace Shazam
             DatabaseConnection.CreateConnection();
 
             Shazam s = new Shazam();
-            
+
             //WavConvert("ZW6F9A6U");
             //AudioMixer.NoiseMixer("ZWZF8Z96");
             //CutRawSong("ZWZF8Z96");
-            LoadAllSongs(s);
+            //LoadAllSongs(s);
             //MixAllSongs(s);
             //TestAllSongs(s);
-            Menu(s);
+            //Menu(s);
+            UpdateMetaData();
 
 
         }
@@ -83,7 +84,6 @@ namespace Shazam
                         });
                         command.Start();
                         break;
-
                     case "g":
                     case "get":
                         output.WriteLine("{1,2} {0}", "Enter name of the audio file", "");
@@ -188,6 +188,20 @@ namespace Shazam
             {
                 AudioMixer.NoiseMixer(file.Name.Replace(".wav",""));
             }
+        }
+       
+
+        private static void UpdateMetaData()
+        {
+            List<Song> songs = Shazam.metadata;
+            foreach(Song song in songs)
+            {
+                Console.WriteLine("Update File: " + song.ID);
+                song.ReadMetaData();
+            }
+
+
+            DatabaseConnection.UpdateMetaData(songs);
         }
         private  static void TestAllSongs(Shazam s)
         {
